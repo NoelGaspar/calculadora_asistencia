@@ -4,7 +4,7 @@ App web estática que indica **hasta qué día debe asistir un estudiante** para
 
 ## Cómo funciona
 
-1. Ingresa al menos dos de: días de clases transcurridos, inasistencias, % de asistencia.
+1. Ingresa la cantidad de inasistencias y el % de asistencia actual (los días transcurridos se estiman como inasistencias ÷ % de inasistencia).
 2. Ajusta la fecha de hoy, el último día de clases (por defecto 04-01-2027) y los feriados.
 3. La app calcula:
    - Total de días del año = transcurridos + días hábiles restantes (lunes a viernes, sin feriados).

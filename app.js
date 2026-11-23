@@ -1,12 +1,17 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const els = {
-    elapsed: $("elapsed"), absences: $("absences"), attPct: $("attPct"),
+    absences: $("absences"), attPct: $("attPct"),
     today: $("today"), endDate: $("endDate"), minPct: $("minPct"),
     includeToday: $("includeToday"), holidays: $("holidays"),
     derived: $("derived"), remainingInfo: $("remainingInfo"),
     result: $("result"), calendarCard: $("calendarCard"), days: $("days"),
   };
+
+  // Días de clases transcurridos que se asumen cuando hay 0 inasistencias y 100% de asistencia.
+  // 184 = días hábiles del 02-03-2026 al 23-11-2026 descontando feriados nacionales de Chile
+  // (no descuenta vacaciones de invierno). Reemplazar por el dato real del colegio.
+  const DEFAULT_ELAPSED = 174;
 
   // ---------- Fechas (siempre en hora local, sin desfase UTC) ----------
   const pad = (n) => String(n).padStart(2, "0");
@@ -38,27 +43,23 @@
   };
 
   function readCurrent() {
-    let E = num(els.elapsed), A = num(els.absences), att = num(els.attPct);
-    if ([E, A, att].some(Number.isNaN)) return { error: "Revisa los valores: deben ser números positivos." };
-    if (att !== null && att > 100) return { error: "El porcentaje de asistencia no puede superar 100%." };
-    const P = att === null ? null : 100 - att; // % de inasistencia
+    const A = num(els.absences), att = num(els.attPct);
+    if ([A, att].some(Number.isNaN)) return { error: "Revisa los valores: deben ser números positivos." };
+    if (A === null || att === null) return { incomplete: true };
+    if (!Number.isInteger(A)) return { error: "Las inasistencias deben ser un número entero de días." };
+    if (att > 100) return { error: "El porcentaje de asistencia no puede superar 100%." };
 
-    let note = "";
-    if (E !== null && A !== null) {
-      // Datos completos; el % se deriva (si se ingresó, se ignora).
-      if (A > E) return { error: "Las inasistencias no pueden superar los días transcurridos." };
-      note = `% de asistencia actual: ${E ? (((E - A) / E) * 100).toFixed(1) : "100.0"}%`;
-    } else if (E !== null && P !== null) {
-      A = Math.round((E * P) / 100);
-      note = `Inasistencias estimadas: ${A} día(s) (asistencia ${att}% de ${E} días).`;
-    } else if (A !== null && P !== null) {
-      if (P === 0) return { error: "Con 100% de asistencia no se pueden deducir los días transcurridos. Ingresa los días de clases transcurridos." };
-      E = Math.round(A / (P / 100));
-      note = `Días de clases transcurridos estimados: ${E} (${A} inasistencias con ${att}% de asistencia).`;
-    } else {
-      return { incomplete: true };
+    const P = 100 - att; // % de inasistencia
+    if (A === 0) {
+      if (P > 0) return { error: "Con 0 inasistencias la asistencia debería ser 100%. Revisa los datos." };
+      // Sin faltas no se pueden deducir los días transcurridos: se usa un valor por defecto.
+      return { E: DEFAULT_ELAPSED, A: 0, note: `Sin inasistencias: se asumen ${DEFAULT_ELAPSED} días de clases transcurridos (valor estimado).` };
     }
-    return { E, A, note };
+    if (P === 0) return { error: "Si tiene inasistencias, la asistencia no puede ser 100%. Revisa los datos." };
+
+    const E = Math.round(A / (P / 100)); // días de clases transcurridos
+    if (A > E) return { error: "Los datos no son consistentes. Revisa las inasistencias y el porcentaje." };
+    return { E, A, note: `Días de clases transcurridos estimados: ${E}.` };
   }
 
   // ---------- Cálculo principal ----------
