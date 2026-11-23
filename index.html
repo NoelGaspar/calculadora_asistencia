@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Asistencia</title>
+  <meta name="description" content="Calcula hasta qué día debes asistir para alcanzar el 85% de asistencia mínima.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Calculadora de Asistencia</h1>
+      <p class="lead">Descubre hasta qué día debes asistir sin faltar para alcanzar la asistencia mínima de aprobación.</p>
+    </header>
+
+    <section class="card">
+      <h2>1. Tu situación actual</h2>
+      <p class="hint">Completa <strong>al menos dos</strong> de estos tres campos. El tercero se calcula solo.</p>
+      <div class="grid3">
+        <label>Días de clases transcurridos
+          <input type="number" id="elapsed" min="0" step="1" inputmode="numeric" placeholder="ej: 150">
+        </label>
+        <label>Inasistencias hasta hoy
+          <input type="number" id="absences" min="0" step="1" inputmode="numeric" placeholder="ej: 20">
+        </label>
+        <label>% de asistencia actual
+          <input type="number" id="attPct" min="0" max="100" step="0.1" inputmode="decimal" placeholder="ej: 86.7">
+        </label>
+      </div>
+      <p class="derived" id="derived"></p>
+    </section>
+
+    <section class="card">
+      <h2>2. Período restante</h2>
+      <div class="grid3">
+        <label>Fecha de hoy
+          <input type="date" id="today">
+        </label>
+        <label>Último día de clases
+          <input type="date" id="endDate" value="2027-01-04">
+        </label>
+        <label>Asistencia mínima (%)
+          <input type="number" id="minPct" min="1" max="100" step="0.1" value="85">
+        </label>
+      </div>
+      <label class="check">
+        <input type="checkbox" id="includeToday">
+        Contar el día de hoy como día por asistir (aún no se ha registrado la asistencia de hoy)
+      </label>
+      <details>
+        <summary>Días sin clases (feriados, vacaciones…)</summary>
+        <p class="hint">Una fecha por línea, formato AAAA-MM-DD. Sábados y domingos ya se excluyen automáticamente.</p>
+        <textarea id="holidays" rows="5">2026-12-08
+2026-12-25
+2027-01-01</textarea>
+      </details>
+      <p class="derived" id="remainingInfo"></p>
+    </section>
+
+    <section class="card result" id="result" aria-live="polite">
+      <p class="muted">Completa los datos para ver el resultado.</p>
+    </section>
+
+    <section class="card" id="calendarCard" hidden>
+      <h2>Días hábiles restantes</h2>
+      <div class="legend">
+        <span><i class="dot must"></i> Debe asistir</span>
+        <span><i class="dot free"></i> Puede faltar (margen)</span>
+      </div>
+      <ol class="days" id="days"></ol>
+    </section>
+
+    <footer>
+      <p>El cálculo considera: asistencia final = días asistidos ÷ total de días de clases del año. Las faltas de margen se muestran al final, pero puedes usarlas cualquier día.</p>
+    </footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
